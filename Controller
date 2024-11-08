@@ -7,58 +7,69 @@ def main():
     
     robot1 = robot.ARAP()
     robot1.init_devices()
-
+    
     while True:
         robot1.reset_actuator_values()
         robot1.blink_leds()
 
-        # Get color detection values
+        # Get color detection values from the camera
         red, green, blue = robot1.get_camera_image(5)
-        print(f"Detected colors - Red: {red}, Green: {green}, Blue: {blue}")
 
-        # Check for the red block
-        if red > 100 and "Red" not in summary:  # Adjusted threshold
+        # Initialize flag to check for new color detection
+        color_detected = False
+
+        # Check for red block detection
+        if red > 206 and "Red" not in summary:  # Adjust threshold as necessary
             print("I see red")
             summary.append("Red")
+            color_detected = True
 
-        # Check for the blue block
-        if blue > 100 and "Blue" not in summary:  # Adjusted threshold
+        # Check for blue block detection
+        if blue > 206 and "Blue" not in summary:  # Adjust threshold as necessary
             print("I see blue")
             summary.append("Blue")
+            color_detected = True
 
-        # Check for the green block
-        if green > 100 and "Green" not in summary:  # Adjusted threshold
+        # Check for green block detection
+        if green > 206 and "Green" not in summary:  # Adjust threshold as necessary
             print("I see green")
             summary.append("Green")
+            color_detected = True
 
-        # Print summary of encountered colors
-        print(f"Summary: {', '.join(summary)}")
+        # Print summary only if a new color was detected
+        if color_detected:
+            print(f"Summary: {', '.join(summary)}")
 
-        # Obstacle detection logic
+        # Obstacle detection and avoidance
         front_obstacle = robot1.front_obstacles_detected()
         right_obstacle = robot1.right_obstacles_detected()
         left_obstacle = robot1.left_obstacles_detected()
 
+        # Check if any obstacle was detected
         if front_obstacle or right_obstacle or left_obstacle:
-            print("Obstacle detected! Checking color...")  # Log comment on obstacle detection
-            
-            # Optionally, you can check the color of the obstacle that was hit if needed
+            # Determine which obstacle was encountered
             if front_obstacle:
-                print("Obstacle hit in front.")
-                robot1.move_backward()  # You can modify movement behavior as needed
-                robot1.turn_left()  # Example of turning left
+                # Check if the front obstacle is a colored block based on recent color detection
+                if red > 206 or green > 206 or blue > 206:
+                    print("Hit a colored block in front.")
+                robot1.move_backward()
+                robot1.turn_left()
             elif right_obstacle:
-                print("Obstacle hit on the right.")
+                if red > 206 or green > 206 or blue > 206:
+                    print("Hit a colored block on the right.")
                 robot1.move_backward()
-                robot1.turn_left()  # Example of turning left
+                robot1.turn_left()
             elif left_obstacle:
-                print("Obstacle hit on the left.")
+                if red > 206 or green > 206 or blue > 206:
+                    print("Hit a colored block on the left.")
                 robot1.move_backward()
-                robot1.turn_right()  # Example of turning right
+                robot1.turn_right()
         else:
-            robot1.run_braitenberg()  # Continue normal movement if no obstacles are detected
-            print("No obstacles detected. Continuing forward.")
+            # Continue normal movement if no obstacles detected
+            robot1.run_braitenberg()
+            print("Continue moving.")
 
+        # Update actuators and step forward
         robot1.set_actuators()
         robot1.step()
 
